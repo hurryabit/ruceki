@@ -5,7 +5,6 @@ extern crate serde;
 extern crate serde_json;
 
 use std::collections::HashMap;
-use std::collections::LinkedList;
 use std::env;
 use std::io::Read;
 
@@ -31,7 +30,7 @@ enum Prim {
 enum Value {
   Num(i64),
   Pack(usize, Vec<Value>),
-  PAP(Prim, LinkedList<Value>, usize)
+  PAP(Prim, Vec<Value>, usize)
 }
 
 #[derive(Debug)]
@@ -46,8 +45,8 @@ type Env = HashMap<Name, Value>;
 #[derive(Debug)]
 enum Kont {
   Dump(Env),
-  Args(LinkedList<Expr>),
-  Fun(Prim, LinkedList<Value>, usize),
+  Args(Vec<Expr>),
+  Fun(Prim, Vec<Value>, usize),
   Match(Vec<Altn>),
   Let(Name, Expr)
 }
@@ -56,7 +55,7 @@ enum Kont {
 struct State {
   ctrl: Ctrl,
   env: Env,
-  kont: LinkedList<Kont>
+  kont: Vec<Kont>
 }
 
 impl Value {
@@ -71,7 +70,7 @@ impl Value {
 
 impl Ctrl {
   fn from_prim(prim: Prim, arity: usize) -> Self {
-    Ctrl::Value(Value::PAP(prim, LinkedList::new(), arity))
+    Ctrl::Value(Value::PAP(prim, Vec::new(), arity))
   }
 }
 
@@ -92,7 +91,7 @@ impl State {
     State {
       ctrl: Ctrl::Expr(expr),
       env: Env::new(),
-      kont: LinkedList::new()
+      kont: Vec::new()
     }
   }
 
@@ -131,8 +130,9 @@ impl State {
         Ctrl::from_prim(Prim::Pack(tag, arity), arity),
       Ctrl::Expr(Expr::Num{int}) =>
         Ctrl::Value(Value::Num(int)),
-      Ctrl::Expr(Expr::Ap{fun, args}) => {
-        self.kont.push_front(Kont::Args(args.into_iter().collect()));
+      Ctrl::Expr(Expr::Ap{fun, mut args}) => {
+        args.reverse();
+        self.kont.push(Kont::Args(args));
         Ctrl::Expr(*fun)
       },
       Ctrl::Expr(Expr::Let{isrec, mut defns, body}) =>
@@ -144,11 +144,11 @@ impl State {
         }
         else {
           let Defn{lhs, rhs} = defns.pop().unwrap();
-          self.kont.push_front(Kont::Let(lhs, *body));
+          self.kont.push(Kont::Let(lhs, *body));
           Ctrl::Expr(rhs)
         }
       Ctrl::Expr(Expr::Match{expr, altns}) => {
-        self.kont.push_front(Kont::Match(altns));
+        self.kont.push(Kont::Match(altns));
         Ctrl::Expr(*expr)
       },
 
@@ -158,7 +158,7 @@ impl State {
             let mut new_env = Env::new();
             extend_env(&mut new_env, lam.binds, args.into_iter().collect());
             let old_env = std::mem::replace(&mut self.env, new_env);
-            self.kont.push_front(Kont::Dump(old_env));
+            self.kont.push(Kont::Dump(old_env));
             Ctrl::Expr(lam.body)
             },
           Prim::External(_name, ext) =>
@@ -168,7 +168,7 @@ impl State {
         },
 
       Ctrl::Value(v) => {
-          match self.kont.pop_front().expect("Step on final state") {
+          match self.kont.pop().expect("Step on final state") {
             Kont::Dump(env) => {
               self.env = env;
               Ctrl::Value(v)
@@ -176,25 +176,25 @@ impl State {
             Kont::Args(mut next_args) =>
               match v {
                 Value::PAP(prim, args, missing) => {
-                  let next_arg = next_args.pop_front().expect("Empty Args");
+                  let next_arg = next_args.pop().expect("Empty Args");
                   if !next_args.is_empty() {
-                    self.kont.push_front(Kont::Args(next_args));
+                    self.kont.push(Kont::Args(next_args));
                   }
-                  self.kont.push_front(Kont::Fun(prim, args, missing));
+                  self.kont.push(Kont::Fun(prim, args, missing));
                   Ctrl::Expr(next_arg)
                 },
                 _ =>
                   panic!("Applying value"),
               },
             Kont::Fun(prim2, mut args2, missing2) => {
-              args2.push_back(v);
+              args2.push(v);
               Ctrl::Value(Value::PAP(prim2, args2, missing2-1))
             },
             Kont::Match(mut altns) =>
               match v {
                 Value::Pack(tag, args) => {
                   let Altn{binds, rhs} = altns.swap_remove(tag);
-                  self.kont.push_front(Kont::Dump(self.env.clone()));
+                  self.kont.push(Kont::Dump(self.env.clone()));
                   extend_env(&mut self.env, binds, args);
                   Ctrl::Expr(rhs)
                   },
@@ -202,7 +202,7 @@ impl State {
                   panic!("Pattern match on non-data value"),
               }
             Kont::Let(name, body) => {
-              self.kont.push_front(Kont::Dump(self.env.clone()));
+              self.kont.push(Kont::Dump(self.env.clone()));
               self.env.insert(name, v);
               Ctrl::Expr(body)
             }
