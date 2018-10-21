@@ -6,35 +6,14 @@ pub type Name = String;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Expr {
-  Local {
-    name: Name,
-  },
-  Global {
-    name: Name,
-  },
-  External {
-    name: Name,
-  },
-  Pack {
-    tag: usize,
-    arity: usize,
-  },
-  Num {
-    int: i64,
-  },
-  Ap {
-    fun: Box<Expr>,
-    args: Vec<Expr>,
-  },
-  Let {
-    isrec: bool,
-    defns: Vec<Defn>,
-    body: Box<Expr>,
-  },
-  Match {
-    expr: Box<Expr>,
-    altns: Vec<Altn>,
-  },
+  Local { name: Name },
+  Global { name: Name },
+  External { name: Name },
+  Pack { tag: usize, arity: usize },
+  Num { int: i64 },
+  Ap { fun: Box<Expr>, args: Vec<Expr> },
+  Let { defn: Box<Defn>, body: Box<Expr> },
+  Match { expr: Box<Expr>, altns: Vec<Altn> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

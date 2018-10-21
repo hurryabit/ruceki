@@ -175,15 +175,11 @@ impl<'a> State<'a> {
         self.kont.push(Kont::Args(args));
         Ctrl::Expr(fun)
       }
-      Ctrl::Expr(Expr::Let { isrec, defns, body }) => if *isrec {
-        panic!("Recursive lets are not supported in a struct language")
-      } else if defns.len() != 1 {
-        panic!("Parallel lets are not implemented yet")
-      } else {
-        let Defn { lhs, rhs } = &defns[0];
+      Ctrl::Expr(Expr::Let { defn, body }) => {
+        let Defn { lhs, rhs } = defn.borrow();
         self.kont.push(Kont::Let(lhs, body));
         Ctrl::Expr(rhs)
-      },
+      }
       Ctrl::Expr(Expr::Match { expr, altns }) => {
         self.kont.push(Kont::Match(altns));
         Ctrl::Expr(expr)
