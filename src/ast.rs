@@ -69,6 +69,17 @@ pub struct Lambda {
 
 pub type Module = HashMap<Name, Lambda>;
 
+impl Expr {
+  pub fn entry_point() -> Expr {
+    Expr::Ap {
+      fun: Box::new(Expr::Global {
+        name: String::from("main"),
+      }),
+      args: vec![Expr::Pack { tag: 0, arity: 0 }],
+    }
+  }
+}
+
 impl TopLevel {
   fn lambda(self) -> Option<(Name, Lambda)> {
     match self {

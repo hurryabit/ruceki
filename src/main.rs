@@ -6,59 +6,66 @@ extern crate serde_json;
 
 use std::collections::HashMap;
 use std::env;
+use std::fmt;
 use std::io::Read;
 
 mod ast;
 use ast::{Altn, Defn, Expr, Lambda, Module, Name};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct External {
   arity: usize,
   run: fn(Vec<Value>) -> Value,
 }
 
+impl fmt::Debug for External {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "External {{ arity: {}, run: .. }}", self.arity)
+  }
+}
+
 type Externals = HashMap<Name, External>;
 
 #[derive(Debug, Clone)]
-enum Prim {
-  Global(Name, Lambda),
-  External(Name, External),
+enum Prim<'a> {
+  Global(&'a Name, &'a Lambda),
+  External(&'a Name, &'a External),
   Pack(usize, usize),
 }
 
 #[derive(Debug, Clone)]
-enum Value {
+enum Value<'a> {
   Num(i64),
-  Pack(usize, Vec<Value>),
-  PAP(Prim, Vec<Value>, usize),
+  Pack(usize, Vec<Value<'a>>),
+  PAP(Prim<'a>, Vec<Value<'a>>, usize),
 }
 
 #[derive(Debug)]
-enum Ctrl {
+enum Ctrl<'a> {
   Evaluating,
-  Expr(Expr),
-  Value(Value),
+  Expr(&'a Expr),
+  Value(Value<'a>),
 }
 
-type Env = HashMap<Name, Value>;
+type Env<'a> = HashMap<&'a Name, Value<'a>>;
 
 #[derive(Debug)]
-enum Kont {
-  Dump(Env),
-  Args(Vec<Expr>),
-  Fun(Prim, Vec<Value>, usize),
-  Match(Vec<Altn>),
-  Let(Name, Expr),
+enum Kont<'a> {
+  Dump(Env<'a>),
+  Args(&'a [Expr]),
+  Fun(Prim<'a>, Vec<Value<'a>>, usize),
+  Match(&'a Vec<Altn>),
+  Let(&'a Name, &'a Expr),
 }
 
 #[derive(Debug)]
-struct State {
-  ctrl: Ctrl,
-  env: Env,
-  kont: Vec<Kont>,
+struct State<'a> {
+  ctrl: Ctrl<'a>,
+  env: Env<'a>,
+  kont: Vec<Kont<'a>>,
 }
 
-impl Value {
+impl<'a> Value<'a> {
   fn mk_unit() -> Self {
     Value::Pack(0, Vec::new())
   }
@@ -68,13 +75,13 @@ impl Value {
   }
 }
 
-impl Ctrl {
-  fn from_prim(prim: Prim, arity: usize) -> Self {
+impl<'a> Ctrl<'a> {
+  fn from_prim(prim: Prim<'a>, arity: usize) -> Self {
     Ctrl::Value(Value::PAP(prim, Vec::new(), arity))
   }
 }
 
-fn extend_env(env: &mut Env, binds: Vec<Option<Name>>, args: Vec<Value>) {
+fn extend_env<'a>(env: &mut Env<'a>, binds: &'a Vec<Option<Name>>, args: Vec<Value<'a>>) {
   if binds.len() != args.len() {
     panic!("Different number of parameters and arguments");
   }
@@ -89,8 +96,8 @@ fn extend_env(env: &mut Env, binds: Vec<Option<Name>>, args: Vec<Value>) {
   }
 }
 
-impl State {
-  fn from_expr(expr: Expr) -> Self {
+impl<'a> State<'a> {
+  fn from_expr(expr: &'a Expr) -> Self {
     State {
       ctrl: Ctrl::Expr(expr),
       env: Env::new(),
@@ -98,21 +105,7 @@ impl State {
     }
   }
 
-  fn enter_main() -> Self {
-    let expr = Expr::Ap {
-      fun: Box::new(Expr::Global {
-        name: String::from("main"),
-      }),
-      args: vec![Expr::Pack { tag: 0, arity: 0 }],
-    };
-    Self::from_expr(expr)
-  }
-
-  fn enter_caf(name: String) -> Self {
-    Self::from_expr(Expr::Global { name })
-  }
-
-  fn step(&mut self, module: &Module, externals: &Externals) {
+  fn step(&mut self, module: &'a Module, externals: &'a Externals) {
     let old_ctrl = std::mem::replace(&mut self.ctrl, Ctrl::Evaluating);
 
     let new_ctrl = match old_ctrl {
@@ -127,48 +120,44 @@ impl State {
       }
       Ctrl::Expr(Expr::Global { name }) => {
         let lam = module
-          .get(&name)
+          .get(name)
           .expect(&format!("Unknown global: {}", name));
-        Ctrl::from_prim(Prim::Global(name, lam.clone()), lam.binds.len())
+        Ctrl::from_prim(Prim::Global(name, lam), lam.binds.len())
       }
       Ctrl::Expr(Expr::External { name }) => {
         let ext = externals
-          .get(&name)
+          .get(name)
           .expect(&format!("Unknown external: {}", name));
-        Ctrl::from_prim(Prim::External(name, ext.clone()), ext.arity)
+        Ctrl::from_prim(Prim::External(name, ext), ext.arity)
       }
-      Ctrl::Expr(Expr::Pack { tag, arity }) => Ctrl::from_prim(Prim::Pack(tag, arity), arity),
-      Ctrl::Expr(Expr::Num { int }) => Ctrl::Value(Value::Num(int)),
-      Ctrl::Expr(Expr::Ap { fun, mut args }) => {
-        args.reverse();
+      Ctrl::Expr(&Expr::Pack { tag, arity }) => Ctrl::from_prim(Prim::Pack(tag, arity), arity),
+      Ctrl::Expr(&Expr::Num { int }) => Ctrl::Value(Value::Num(int)),
+      Ctrl::Expr(Expr::Ap { fun, args }) => {
         self.kont.push(Kont::Args(args));
-        Ctrl::Expr(*fun)
+        Ctrl::Expr(fun)
       }
-      Ctrl::Expr(Expr::Let {
-        isrec,
-        mut defns,
-        body,
-      }) => if isrec {
+      Ctrl::Expr(Expr::Let { isrec, defns, body }) => if *isrec {
         panic!("Recursive lets are not supported in a struct language")
       } else if defns.len() != 1 {
         panic!("Parallel lets are not implemented yet")
       } else {
-        let Defn { lhs, rhs } = defns.pop().unwrap();
-        self.kont.push(Kont::Let(lhs, *body));
+        let Defn { lhs, rhs } = &defns[0];
+        self.kont.push(Kont::Let(lhs, body));
         Ctrl::Expr(rhs)
       },
       Ctrl::Expr(Expr::Match { expr, altns }) => {
         self.kont.push(Kont::Match(altns));
-        Ctrl::Expr(*expr)
+        Ctrl::Expr(expr)
       }
 
       Ctrl::Value(Value::PAP(prim, args, 0)) => match prim {
-        Prim::Global(_name, mut lam) => {
+        Prim::Global(_name, lam) => {
+          let Lambda { binds, body } = lam;
           let mut new_env = Env::new();
-          extend_env(&mut new_env, lam.binds, args.into_iter().collect());
+          extend_env(&mut new_env, binds, args.into_iter().collect());
           let old_env = std::mem::replace(&mut self.env, new_env);
           self.kont.push(Kont::Dump(old_env));
-          Ctrl::Expr(lam.body)
+          Ctrl::Expr(body)
         }
         Prim::External(_name, ext) => Ctrl::Value((ext.run)(args.into_iter().collect())),
         Prim::Pack(tag, _arity) => Ctrl::Value(Value::Pack(tag, args.into_iter().collect())),
@@ -179,9 +168,9 @@ impl State {
           self.env = env;
           Ctrl::Value(v)
         }
-        Kont::Args(mut next_args) => match v {
+        Kont::Args(next_args) => match v {
           Value::PAP(prim, args, missing) => {
-            let next_arg = next_args.pop().expect("Empty Args");
+            let (next_arg, next_args) = next_args.split_first().expect("Empty Args");
             if !next_args.is_empty() {
               self.kont.push(Kont::Args(next_args));
             }
@@ -194,9 +183,9 @@ impl State {
           args2.push(v);
           Ctrl::Value(Value::PAP(prim2, args2, missing2 - 1))
         }
-        Kont::Match(mut altns) => match v {
+        Kont::Match(altns) => match v {
           Value::Pack(tag, args) => {
-            let Altn { binds, rhs } = altns.swap_remove(tag);
+            let Altn { binds, rhs } = &altns[tag];
             self.kont.push(Kont::Dump(self.env.clone()));
             extend_env(&mut self.env, binds, args);
             Ctrl::Expr(rhs)
@@ -384,14 +373,15 @@ fn externals() -> Externals {
 fn main() -> std::io::Result<()> {
   let debug = false;
   let args: Vec<String> = env::args().collect();
-
   let filename = &args[1];
+
+  let entry_point = Expr::entry_point();
   let module: Module = ast::load_module(filename)?;
   let externals = externals();
   eprintln!("Loaded!");
 
   // let mut state = State::enter_caf(String::from("test"));
-  let mut state = State::enter_main();
+  let mut state = State::from_expr(&entry_point);
   let mut count = 0;
   if debug {
     eprintln!("State 0: {:?}", state);
