@@ -4,10 +4,12 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::env;
 use std::fmt;
 use std::io::Read;
+use std::rc::Rc;
 
 mod ast;
 use ast::{Altn, Defn, Expr, Lambda, Module, Name};
@@ -15,7 +17,7 @@ use ast::{Altn, Defn, Expr, Lambda, Module, Name};
 #[derive(Clone)]
 struct External {
   arity: usize,
-  run: fn(Vec<Value>) -> Value,
+  run: fn(Vec<Rc<Value>>) -> Rc<Value>,
 }
 
 impl fmt::Debug for External {
@@ -26,7 +28,7 @@ impl fmt::Debug for External {
 
 type Externals = HashMap<Name, External>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 enum Prim<'a> {
   Global(&'a Name, &'a Lambda),
   External(&'a Name, &'a External),
@@ -36,24 +38,24 @@ enum Prim<'a> {
 #[derive(Debug, Clone)]
 enum Value<'a> {
   Num(i64),
-  Pack(usize, Vec<Value<'a>>),
-  PAP(Prim<'a>, Vec<Value<'a>>, usize),
+  Pack(usize, Vec<Rc<Value<'a>>>),
+  PAP(Prim<'a>, Vec<Rc<Value<'a>>>, usize),
 }
 
 #[derive(Debug)]
 enum Ctrl<'a> {
   Evaluating,
   Expr(&'a Expr),
-  Value(Value<'a>),
+  Value(Rc<Value<'a>>),
 }
 
-type Env<'a> = HashMap<&'a Name, Value<'a>>;
+type Env<'a> = HashMap<&'a Name, Rc<Value<'a>>>;
 
 #[derive(Debug)]
 enum Kont<'a> {
   Dump(Env<'a>),
   Args(&'a [Expr]),
-  Fun(Prim<'a>, Vec<Value<'a>>, usize),
+  Fun(Prim<'a>, Vec<Rc<Value<'a>>>, usize),
   Match(&'a Vec<Altn>),
   Let(&'a Name, &'a Expr),
 }
@@ -66,22 +68,26 @@ struct State<'a> {
 }
 
 impl<'a> Value<'a> {
-  fn mk_unit() -> Self {
-    Value::Pack(0, Vec::new())
+  fn mk_unit() -> Rc<Self> {
+    Rc::new(Value::Pack(0, Vec::new()))
   }
 
-  fn mk_bool(b: bool) -> Self {
-    Value::Pack(b.into(), Vec::new())
+  fn mk_bool(b: bool) -> Rc<Self> {
+    Rc::new(Value::Pack(b.into(), Vec::new()))
+  }
+
+  fn mk_num(n: i64) -> Rc<Self> {
+    Rc::new(Value::Num(n))
   }
 }
 
 impl<'a> Ctrl<'a> {
   fn from_prim(prim: Prim<'a>, arity: usize) -> Self {
-    Ctrl::Value(Value::PAP(prim, Vec::new(), arity))
+    Ctrl::Value(Rc::new(Value::PAP(prim, Vec::new(), arity)))
   }
 }
 
-fn extend_env<'a>(env: &mut Env<'a>, binds: &'a Vec<Option<Name>>, args: Vec<Value<'a>>) {
+fn extend_env<'a>(env: &mut Env<'a>, binds: &'a Vec<Option<Name>>, args: &Vec<Rc<Value<'a>>>) {
   if binds.len() != args.len() {
     panic!("Different number of parameters and arguments");
   }
@@ -89,7 +95,7 @@ fn extend_env<'a>(env: &mut Env<'a>, binds: &'a Vec<Option<Name>>, args: Vec<Val
     match bind_opt {
       None => (),
       Some(bind) => {
-        env.insert(bind, arg);
+        env.insert(bind, Rc::clone(arg));
         ()
       }
     }
@@ -116,7 +122,7 @@ impl<'a> State<'a> {
           .env
           .get(&name)
           .expect(&format!("Unknown local: {}", name));
-        Ctrl::Value(v.clone())
+        Ctrl::Value(Rc::clone(&v))
       }
       Ctrl::Expr(Expr::Global { name }) => {
         let lam = module
@@ -131,7 +137,7 @@ impl<'a> State<'a> {
         Ctrl::from_prim(Prim::External(name, ext), ext.arity)
       }
       Ctrl::Expr(&Expr::Pack { tag, arity }) => Ctrl::from_prim(Prim::Pack(tag, arity), arity),
-      Ctrl::Expr(&Expr::Num { int }) => Ctrl::Value(Value::Num(int)),
+      Ctrl::Expr(&Expr::Num { int }) => Ctrl::Value(Value::mk_num(int)),
       Ctrl::Expr(Expr::Ap { fun, args }) => {
         self.kont.push(Kont::Args(args));
         Ctrl::Expr(fun)
@@ -150,53 +156,55 @@ impl<'a> State<'a> {
         Ctrl::Expr(expr)
       }
 
-      Ctrl::Value(Value::PAP(prim, args, 0)) => match prim {
-        Prim::Global(_name, lam) => {
-          let Lambda { binds, body } = lam;
-          let mut new_env = Env::new();
-          extend_env(&mut new_env, binds, args.into_iter().collect());
-          let old_env = std::mem::replace(&mut self.env, new_env);
-          self.kont.push(Kont::Dump(old_env));
-          Ctrl::Expr(body)
-        }
-        Prim::External(_name, ext) => Ctrl::Value((ext.run)(args.into_iter().collect())),
-        Prim::Pack(tag, _arity) => Ctrl::Value(Value::Pack(tag, args.into_iter().collect())),
-      },
+      Ctrl::Value(v) => match v.borrow() {
+        Value::PAP(prim, args, 0) => match prim {
+          Prim::Global(_name, lam) => {
+            let Lambda { binds, body } = lam;
+            let mut new_env = Env::new();
+            extend_env(&mut new_env, binds, args);
+            let old_env = std::mem::replace(&mut self.env, new_env);
+            self.kont.push(Kont::Dump(old_env));
+            Ctrl::Expr(body)
+          }
+          Prim::External(_name, ext) => Ctrl::Value((ext.run)(args.clone())),
+          Prim::Pack(tag, _arity) => Ctrl::Value(Rc::new(Value::Pack(*tag, args.clone()))),
+        },
 
-      Ctrl::Value(v) => match self.kont.pop().expect("Step on final state") {
-        Kont::Dump(env) => {
-          self.env = env;
-          Ctrl::Value(v)
-        }
-        Kont::Args(next_args) => match v {
-          Value::PAP(prim, args, missing) => {
-            let (next_arg, next_args) = next_args.split_first().expect("Empty Args");
-            if !next_args.is_empty() {
-              self.kont.push(Kont::Args(next_args));
+        _ => match self.kont.pop().expect("Step on final state") {
+          Kont::Dump(env) => {
+            self.env = env;
+            Ctrl::Value(Rc::clone(&v))
+          }
+          Kont::Args(next_args) => match v.borrow() {
+            Value::PAP(prim, args, missing) => {
+              let (next_arg, next_args) = next_args.split_first().expect("Empty Args");
+              if !next_args.is_empty() {
+                self.kont.push(Kont::Args(next_args));
+              }
+              self.kont.push(Kont::Fun(*prim, args.clone(), *missing));
+              Ctrl::Expr(next_arg)
             }
-            self.kont.push(Kont::Fun(prim, args, missing));
-            Ctrl::Expr(next_arg)
+            _ => panic!("Applying value"),
+          },
+          Kont::Fun(prim2, mut args2, missing2) => {
+            args2.push(Rc::clone(&v));
+            Ctrl::Value(Rc::new(Value::PAP(prim2, args2, missing2 - 1)))
           }
-          _ => panic!("Applying value"),
-        },
-        Kont::Fun(prim2, mut args2, missing2) => {
-          args2.push(v);
-          Ctrl::Value(Value::PAP(prim2, args2, missing2 - 1))
-        }
-        Kont::Match(altns) => match v {
-          Value::Pack(tag, args) => {
-            let Altn { binds, rhs } = &altns[tag];
+          Kont::Match(altns) => match v.borrow() {
+            Value::Pack(tag, args) => {
+              let Altn { binds, rhs } = &altns[*tag];
+              self.kont.push(Kont::Dump(self.env.clone()));
+              extend_env(&mut self.env, binds, &args);
+              Ctrl::Expr(rhs)
+            }
+            _ => panic!("Pattern match on non-data value"),
+          },
+          Kont::Let(name, body) => {
             self.kont.push(Kont::Dump(self.env.clone()));
-            extend_env(&mut self.env, binds, args);
-            Ctrl::Expr(rhs)
+            self.env.insert(name, Rc::clone(&v));
+            Ctrl::Expr(body)
           }
-          _ => panic!("Pattern match on non-data value"),
         },
-        Kont::Let(name, body) => {
-          self.kont.push(Kont::Dump(self.env.clone()));
-          self.env.insert(name, v);
-          Ctrl::Expr(body)
-        }
       },
     };
 
@@ -204,24 +212,37 @@ impl<'a> State<'a> {
   }
 
   fn is_final(&self) -> bool {
-    match self.ctrl {
-      Ctrl::Value(Value::Num(_)) | Ctrl::Value(Value::Pack(_, _)) => self.kont.is_empty(),
+    match self.ctrl.borrow() {
+      Ctrl::Value(v) => match v.borrow() {
+        Value::Num(_) | Value::Pack(_, _) => self.kont.is_empty(),
+        _ => false,
+      },
       _ => false,
     }
   }
 }
 
-fn args_i64(args: Vec<Value>) -> i64 {
-  match args.get(0) {
-    Some(Value::Num(x)) if args.len() == 1 => *x,
-    _ => panic!("Type mismatch in args_i64"),
+fn args_i64(args: Vec<Rc<Value>>) -> i64 {
+  let msg: &str = "Type mismatch in args_i64";
+  if args.len() != 1 {
+    panic!(msg);
+  } else {
+    match *args[0] {
+      Value::Num(x) => x,
+      _ => panic!(msg),
+    }
   }
 }
 
-fn args_i64_i64(args: Vec<Value>) -> (i64, i64) {
-  match (args.get(0), args.get(1)) {
-    (Some(Value::Num(x)), Some(Value::Num(y))) if args.len() == 2 => (*x, *y),
-    _ => panic!("Type mismatch in args_i64_i64"),
+fn args_i64_i64(args: Vec<Rc<Value>>) -> (i64, i64) {
+  let msg: &str = "Type mismatch in args_i64_i64";
+  if args.len() != 2 {
+    panic!(msg);
+  } else {
+    match (args[0].borrow(), args[1].borrow()) {
+      (&Value::Num(x), &Value::Num(y)) => (x, y),
+      _ => panic!(msg),
+    }
   }
 }
 
@@ -230,26 +251,26 @@ fn externals() -> Externals {
     arity: 2,
     run: |args| {
       let (x, y) = args_i64_i64(args);
-      Value::Num(x + y)
+      Value::mk_num(x + y)
     },
   };
   let sub_ext = External {
     arity: 2,
     run: |args| {
       let (x, y) = args_i64_i64(args);
-      Value::Num(x - y)
+      Value::mk_num(x - y)
     },
   };
   let mul_ext = External {
     arity: 2,
     run: |args| {
       let (x, y) = args_i64_i64(args);
-      Value::Num(x * y)
+      Value::mk_num(x * y)
     },
   };
   let neg_ext = External {
     arity: 1,
-    run: |args| Value::Num(-args_i64(args)),
+    run: |args| Value::mk_num(-args_i64(args)),
   };
   let eq_ext = External {
     arity: 2,
@@ -288,11 +309,11 @@ fn externals() -> Externals {
   };
   let chr_ext = External {
     arity: 1,
-    run: |args| Value::Num(args_i64(args) & 0xFF),
+    run: |args| Value::mk_num(args_i64(args) & 0xFF),
   };
   let ord_ext = External {
     arity: 1,
-    run: |args| Value::Num(args_i64(args)),
+    run: |args| Value::mk_num(args_i64(args)),
   };
   let puti_ext = External {
     arity: 1,
@@ -318,7 +339,7 @@ fn externals() -> Externals {
         std::io::stdin()
           .read_line(&mut input)
           .expect("Failed to read line");
-        Value::Num(input.trim().parse().expect("Input not a number!"))
+        Value::mk_num(input.trim().parse().expect("Input not a number!"))
       }
     },
   };
@@ -333,7 +354,7 @@ fn externals() -> Externals {
           Ok(()) => input[0] as i64,
           Err(_) => -1,
         };
-        Value::Num(n)
+        Value::mk_num(n)
       }
     },
   };
