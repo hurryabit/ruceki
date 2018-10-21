@@ -49,11 +49,59 @@ enum Ctrl<'a> {
   Value(Rc<Value<'a>>),
 }
 
-type Env<'a> = HashMap<&'a Name, Rc<Value<'a>>>;
+#[derive(Debug)]
+struct Env<'a> {
+  values: HashMap<&'a Name, Vec<Rc<Value<'a>>>>,
+}
+
+impl<'a> Env<'a> {
+  fn new() -> Self {
+    Env {
+      values: HashMap::new(),
+    }
+  }
+
+  fn get(&self, name: &Name) -> Option<&Rc<Value<'a>>> {
+    self.values.get(name).and_then(|v| v.last())
+  }
+
+  fn insert(&mut self, name: &'a Name, value: Rc<Value<'a>>) {
+    self.values.entry(name).or_insert(Vec::new()).push(value);
+  }
+
+  fn insert_many(&mut self, binds: &'a Vec<Option<Name>>, args: &Vec<Rc<Value<'a>>>) {
+    if binds.len() != args.len() {
+      panic!("Different number of parameters and arguments");
+    }
+    for (bind_opt, arg) in binds.into_iter().zip(args.into_iter()) {
+      if let Some(bind) = bind_opt {
+        self.insert(bind, Rc::clone(arg));
+      }
+    }
+  }
+
+  fn remove(&mut self, name: &Name) -> Rc<Value<'a>> {
+    self
+      .values
+      .get_mut(name)
+      .and_then(Vec::pop)
+      .expect("Unknown removal from env")
+  }
+
+  fn remove_many(&mut self, binds: &'a Vec<Option<Name>>) {
+    for bind_opt in binds {
+      if let Some(bind) = bind_opt {
+        self.remove(bind);
+      }
+    }
+  }
+}
 
 #[derive(Debug)]
 enum Kont<'a> {
   Dump(Env<'a>),
+  Drop(&'a Name),
+  DropMany(&'a Vec<Option<Name>>),
   Args(&'a [Expr]),
   Fun(Prim<'a>, Vec<Rc<Value<'a>>>, usize),
   Match(&'a Vec<Altn>),
@@ -84,21 +132,6 @@ impl<'a> Value<'a> {
 impl<'a> Ctrl<'a> {
   fn from_prim(prim: Prim<'a>, arity: usize) -> Self {
     Ctrl::Value(Rc::new(Value::PAP(prim, Vec::new(), arity)))
-  }
-}
-
-fn extend_env<'a>(env: &mut Env<'a>, binds: &'a Vec<Option<Name>>, args: &Vec<Rc<Value<'a>>>) {
-  if binds.len() != args.len() {
-    panic!("Different number of parameters and arguments");
-  }
-  for (bind_opt, arg) in binds.into_iter().zip(args.into_iter()) {
-    match bind_opt {
-      None => (),
-      Some(bind) => {
-        env.insert(bind, Rc::clone(arg));
-        ()
-      }
-    }
   }
 }
 
@@ -161,7 +194,7 @@ impl<'a> State<'a> {
           Prim::Global(_name, lam) => {
             let Lambda { binds, body } = lam;
             let mut new_env = Env::new();
-            extend_env(&mut new_env, binds, args);
+            new_env.insert_many(binds, args);
             let old_env = std::mem::replace(&mut self.env, new_env);
             self.kont.push(Kont::Dump(old_env));
             Ctrl::Expr(body)
@@ -173,6 +206,14 @@ impl<'a> State<'a> {
         _ => match self.kont.pop().expect("Step on final state") {
           Kont::Dump(env) => {
             self.env = env;
+            Ctrl::Value(Rc::clone(&v))
+          }
+          Kont::Drop(name) => {
+            self.env.remove(name);
+            Ctrl::Value(Rc::clone(&v))
+          }
+          Kont::DropMany(binds) => {
+            self.env.remove_many(binds);
             Ctrl::Value(Rc::clone(&v))
           }
           Kont::Args(next_args) => match v.borrow() {
@@ -193,14 +234,14 @@ impl<'a> State<'a> {
           Kont::Match(altns) => match v.borrow() {
             Value::Pack(tag, args) => {
               let Altn { binds, rhs } = &altns[*tag];
-              self.kont.push(Kont::Dump(self.env.clone()));
-              extend_env(&mut self.env, binds, &args);
+              self.kont.push(Kont::DropMany(binds));
+              self.env.insert_many(binds, &args);
               Ctrl::Expr(rhs)
             }
             _ => panic!("Pattern match on non-data value"),
           },
           Kont::Let(name, body) => {
-            self.kont.push(Kont::Dump(self.env.clone()));
+            self.kont.push(Kont::Drop(name));
             self.env.insert(name, Rc::clone(&v));
             Ctrl::Expr(body)
           }
