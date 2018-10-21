@@ -51,57 +51,39 @@ enum Ctrl<'a> {
 
 #[derive(Debug)]
 struct Env<'a> {
-  values: HashMap<&'a Name, Vec<Rc<Value<'a>>>>,
+  stack: Vec<Rc<Value<'a>>>,
 }
 
 impl<'a> Env<'a> {
   fn new() -> Self {
-    Env {
-      values: HashMap::new(),
-    }
+    Env { stack: Vec::new() }
   }
 
-  fn get(&self, name: &Name) -> Option<&Rc<Value<'a>>> {
-    self.values.get(name).and_then(|v| v.last())
-  }
-
-  fn insert(&mut self, name: &'a Name, value: Rc<Value<'a>>) {
-    self.values.entry(name).or_insert(Vec::new()).push(value);
-  }
-
-  fn insert_many(&mut self, binds: &'a Vec<Option<Name>>, args: &Vec<Rc<Value<'a>>>) {
-    if binds.len() != args.len() {
-      panic!("Different number of parameters and arguments");
-    }
-    for (bind_opt, arg) in binds.into_iter().zip(args.into_iter()) {
-      if let Some(bind) = bind_opt {
-        self.insert(bind, Rc::clone(arg));
-      }
-    }
-  }
-
-  fn remove(&mut self, name: &Name) -> Rc<Value<'a>> {
+  fn get(&self, idx: usize) -> &Rc<Value<'a>> {
     self
-      .values
-      .get_mut(name)
-      .and_then(Vec::pop)
-      .expect("Unknown removal from env")
+      .stack
+      .get(self.stack.len() - idx)
+      .expect("Bad de Bruijn index")
   }
 
-  fn remove_many(&mut self, binds: &'a Vec<Option<Name>>) {
-    for bind_opt in binds {
-      if let Some(bind) = bind_opt {
-        self.remove(bind);
-      }
-    }
+  fn push(&mut self, value: Rc<Value<'a>>) {
+    self.stack.push(value);
+  }
+
+  fn push_many(&mut self, args: &Vec<Rc<Value<'a>>>) {
+    self.stack.extend_from_slice(args);
+  }
+
+  fn pop(&mut self, count: usize) {
+    let new_len = self.stack.len() - count;
+    self.stack.truncate(new_len);
   }
 }
 
 #[derive(Debug)]
 enum Kont<'a> {
   Dump(Env<'a>),
-  Drop(&'a Name),
-  DropMany(&'a Vec<Option<Name>>),
+  Pop(usize),
   Args(&'a [Expr]),
   Fun(Prim<'a>, Vec<Rc<Value<'a>>>, usize),
   Match(&'a Vec<Altn>),
@@ -150,11 +132,8 @@ impl<'a> State<'a> {
     let new_ctrl = match old_ctrl {
       Ctrl::Evaluating => panic!("Control was not update after last step"),
 
-      Ctrl::Expr(Expr::Local { name }) => {
-        let v = self
-          .env
-          .get(&name)
-          .expect(&format!("Unknown local: {}", name));
+      Ctrl::Expr(Expr::Local { idx, .. }) => {
+        let v = self.env.get(*idx);
         Ctrl::Value(Rc::clone(&v))
       }
       Ctrl::Expr(Expr::Global { name }) => {
@@ -188,9 +167,9 @@ impl<'a> State<'a> {
       Ctrl::Value(v) => match v.borrow() {
         Value::PAP(prim, args, 0) => match prim {
           Prim::Global(_name, lam) => {
-            let Lambda { binds, body } = lam;
+            let Lambda { body, .. } = lam;
             let mut new_env = Env::new();
-            new_env.insert_many(binds, args);
+            new_env.push_many(args);
             let old_env = std::mem::replace(&mut self.env, new_env);
             self.kont.push(Kont::Dump(old_env));
             Ctrl::Expr(body)
@@ -204,12 +183,8 @@ impl<'a> State<'a> {
             self.env = env;
             Ctrl::Value(Rc::clone(&v))
           }
-          Kont::Drop(name) => {
-            self.env.remove(name);
-            Ctrl::Value(Rc::clone(&v))
-          }
-          Kont::DropMany(binds) => {
-            self.env.remove_many(binds);
+          Kont::Pop(count) => {
+            self.env.pop(count);
             Ctrl::Value(Rc::clone(&v))
           }
           Kont::Args(next_args) => match v.borrow() {
@@ -229,16 +204,16 @@ impl<'a> State<'a> {
           }
           Kont::Match(altns) => match v.borrow() {
             Value::Pack(tag, args) => {
-              let Altn { binds, rhs } = &altns[*tag];
-              self.kont.push(Kont::DropMany(binds));
-              self.env.insert_many(binds, &args);
+              let Altn { rhs, .. } = &altns[*tag];
+              self.kont.push(Kont::Pop(args.len()));
+              self.env.push_many(&args);
               Ctrl::Expr(rhs)
             }
             _ => panic!("Pattern match on non-data value"),
           },
-          Kont::Let(name, body) => {
-            self.kont.push(Kont::Drop(name));
-            self.env.insert(name, Rc::clone(&v));
+          Kont::Let(_name, body) => {
+            self.kont.push(Kont::Pop(1));
+            self.env.push(Rc::clone(&v));
             Ctrl::Expr(body)
           }
         },

@@ -6,7 +6,7 @@ pub type Name = String;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Expr {
-  Local { name: Name },
+  Local { name: Name, idx: usize },
   Global { name: Name },
   External { name: Name },
   Pack { tag: usize, arity: usize },
