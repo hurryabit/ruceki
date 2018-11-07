@@ -1,9 +1,3 @@
-#![allow(dead_code)]
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-extern crate serde_json;
-
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::env;
@@ -12,7 +6,7 @@ use std::io::Read;
 use std::rc::Rc;
 
 mod ast;
-use ast::{Altn, Defn, Expr, Lambda, Module, Name};
+use crate::ast::{Altn, Defn, Expr, Lambda, Module, Name};
 
 #[derive(Clone)]
 struct External {
