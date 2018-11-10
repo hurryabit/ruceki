@@ -3,11 +3,32 @@ use std::collections::HashMap;
 
 pub type Name = String;
 
+#[allow(non_camel_case_types)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum External {
+  add,
+  sub,
+  mul,
+  neg,
+  eq,
+  le,
+  lt,
+  gt,
+  ge,
+  chr,
+  ord,
+  puti,
+  putc,
+  geti,
+  getc,
+  seq,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Expr {
   Local { name: Name, idx: usize },
   Global { name: Name },
-  External { name: Name },
+  External { name: External },
   Pack { tag: usize, arity: usize },
   Num { int: i64 },
   Ap { fun: Box<Expr>, args: Vec<Expr> },
@@ -46,6 +67,30 @@ pub struct Lambda {
 }
 
 pub type Module = HashMap<Name, Lambda>;
+
+impl External {
+  pub fn arity(self) -> usize {
+    use self::External::*;
+    match self {
+      add => 2,
+      sub => 2,
+      mul => 2,
+      neg => 1,
+      eq => 2,
+      le => 2,
+      lt => 2,
+      gt => 2,
+      ge => 2,
+      chr => 1,
+      ord => 1,
+      puti => 1,
+      putc => 1,
+      geti => 1,
+      getc => 1,
+      seq => 2,
+    }
+  }
+}
 
 impl Expr {
   pub fn entry_point() -> Expr {
