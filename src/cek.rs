@@ -1,4 +1,5 @@
 use std::borrow::Borrow;
+use std::io::{BufRead, Write};
 use std::rc::Rc;
 
 use crate::ast::*;
@@ -58,19 +59,22 @@ enum Kont<'a> {
   Let(&'a Name, &'a Expr),
 }
 
-#[derive(Debug)]
-pub struct State<'a> {
+pub struct State<'a, In: BufRead, Out: Write> {
   ctrl: Ctrl<'a>,
   env: Env<'a>,
   kont: Vec<Kont<'a>>,
+  input: &'a mut In,
+  output: &'a mut Out,
 }
 
-impl<'a> State<'a> {
-  pub fn from_expr(expr: &'a Expr) -> Self {
+impl<'a, In: BufRead, Out: Write> State<'a, In, Out> {
+  pub fn from_expr(expr: &'a Expr, input: &'a mut In, output: &'a mut Out) -> Self {
     State {
       ctrl: Ctrl::Expr(expr),
       env: Env::new(),
       kont: Vec::new(),
+      input,
+      output,
     }
   }
 
@@ -117,7 +121,7 @@ impl<'a> State<'a> {
             self.kont.push(Kont::Dump(old_env));
             Ctrl::Expr(body)
           }
-          Prim::External(name) => Ctrl::Value(Value::eval_external(*name, &args)),
+          Prim::External(name) => Ctrl::Value(Value::eval_external(*name, &args, &mut self.input, &mut self.output)),
           Prim::Pack(tag, _arity) => Ctrl::Value(Rc::new(Value::Pack(*tag, args.clone()))),
         },
 

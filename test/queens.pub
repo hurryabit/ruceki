@@ -1,0 +1,1724 @@
+[
+  {
+    "Asm": {
+      "name": "eq"
+    }
+  },
+  {
+    "Asm": {
+      "name": "lt"
+    }
+  },
+  {
+    "Asm": {
+      "name": "le"
+    }
+  },
+  {
+    "Asm": {
+      "name": "add"
+    }
+  },
+  {
+    "Asm": {
+      "name": "sub"
+    }
+  },
+  {
+    "Asm": {
+      "name": "seq"
+    }
+  },
+  {
+    "Asm": {
+      "name": "puti"
+    }
+  },
+  {
+    "Asm": {
+      "name": "geti"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Global": {
+                "name": "monoidInt.empty"
+              }
+            },
+            {
+              "External": {
+                "name": "add"
+              }
+            }
+          ],
+          "fun": {
+            "Pack": {
+              "arity": 2,
+              "tag": 0
+            }
+          }
+        }
+      },
+      "name": "monoidInt"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "External": {
+                "name": "puti"
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "io.L2"
+            }
+          }
+        }
+      },
+      "name": "print"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "External": {
+                "name": "geti"
+              }
+            },
+            {
+              "Pack": {
+                "arity": 0,
+                "tag": 0
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "io.L1"
+            }
+          }
+        }
+      },
+      "name": "input"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Global": {
+                "name": "input"
+              }
+            },
+            {
+              "Global": {
+                "name": "main.L1"
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "monadIO.bind.L1"
+            }
+          }
+        }
+      },
+      "name": "main"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Num": {
+          "int": 0
+        }
+      },
+      "name": "monoidInt.empty"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Pack": {
+          "arity": 0,
+          "tag": 0
+        }
+      },
+      "name": "monoidList.empty"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "monoid.m",
+        "f",
+        "x"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "x",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "Local": {
+                    "name": "f",
+                    "idx": 2
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "Match": {
+              "expr": {
+                "Local": {
+                  "name": "monoid.m",
+                  "idx": 3
+                }
+              },
+              "altns": [
+                {
+                  "binds": [
+                    null,
+                    "append"
+                  ],
+                  "rhs": {
+                    "Local": {
+                      "name": "append",
+                      "idx": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "name": "foldMap.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "x"
+      ],
+      "body": {
+        "Num": {
+          "int": 1
+        }
+      },
+      "name": "length.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "xs",
+        "ys"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Pack": {
+                "arity": 2,
+                "tag": 1
+              }
+            },
+            {
+              "Local": {
+                "name": "ys",
+                "idx": 1
+              }
+            },
+            {
+              "Local": {
+                "name": "xs",
+                "idx": 2
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "foldableList.foldr.L1"
+            }
+          }
+        }
+      },
+      "name": "monoidList.append.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "xs"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "xs",
+              "idx": 1
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Pack": {
+                  "arity": 0,
+                  "tag": 0
+                }
+              }
+            },
+            {
+              "binds": [
+                "x",
+                "xs"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Local": {
+                              "name": "x",
+                              "idx": 2
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Local": {
+                            "name": "f",
+                            "idx": 4
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Local": {
+                              "name": "f",
+                              "idx": 4
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "xs",
+                              "idx": 1
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Global": {
+                            "name": "functorList.map.L1"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Pack": {
+                      "arity": 2,
+                      "tag": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "functorList.map.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "y0",
+        "xs"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "xs",
+              "idx": 1
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Local": {
+                  "name": "y0",
+                  "idx": 2
+                }
+              }
+            },
+            {
+              "binds": [
+                "x",
+                "xs"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "x",
+                        "idx": 2
+                      }
+                    },
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Local": {
+                              "name": "f",
+                              "idx": 5
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "y0",
+                              "idx": 4
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "xs",
+                              "idx": 1
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Global": {
+                            "name": "foldableList.foldr.L1"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Local": {
+                      "name": "f",
+                      "idx": 5
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "foldableList.foldr.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "n",
+        "x"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "n",
+                    "idx": 2
+                  }
+                },
+                {
+                  "Num": {
+                    "int": 0
+                  }
+                }
+              ],
+              "fun": {
+                "External": {
+                  "name": "le"
+                }
+              }
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "x",
+                        "idx": 1
+                      }
+                    },
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Ap": {
+                              "args": [
+                                {
+                                  "Local": {
+                                    "name": "n",
+                                    "idx": 2
+                                  }
+                                },
+                                {
+                                  "Num": {
+                                    "int": 1
+                                  }
+                                }
+                              ],
+                              "fun": {
+                                "External": {
+                                  "name": "sub"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "x",
+                              "idx": 1
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Global": {
+                            "name": "replicate.L1"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Pack": {
+                      "arity": 2,
+                      "tag": 1
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "binds": [],
+              "rhs": {
+                "Pack": {
+                  "arity": 0,
+                  "tag": 0
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "replicate.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "xs",
+        "ys"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "xs",
+              "idx": 2
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Pack": {
+                  "arity": 0,
+                  "tag": 0
+                }
+              }
+            },
+            {
+              "binds": [
+                "x",
+                "xs"
+              ],
+              "rhs": {
+                "Match": {
+                  "expr": {
+                    "Local": {
+                      "name": "ys",
+                      "idx": 3
+                    }
+                  },
+                  "altns": [
+                    {
+                      "binds": [],
+                      "rhs": {
+                        "Pack": {
+                          "arity": 0,
+                          "tag": 0
+                        }
+                      }
+                    },
+                    {
+                      "binds": [
+                        "y",
+                        "ys"
+                      ],
+                      "rhs": {
+                        "Ap": {
+                          "args": [
+                            {
+                              "Ap": {
+                                "args": [
+                                  {
+                                    "Local": {
+                                      "name": "x",
+                                      "idx": 4
+                                    }
+                                  },
+                                  {
+                                    "Local": {
+                                      "name": "y",
+                                      "idx": 2
+                                    }
+                                  }
+                                ],
+                                "fun": {
+                                  "Local": {
+                                    "name": "f",
+                                    "idx": 7
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "Ap": {
+                                "args": [
+                                  {
+                                    "Local": {
+                                      "name": "f",
+                                      "idx": 7
+                                    }
+                                  },
+                                  {
+                                    "Local": {
+                                      "name": "xs",
+                                      "idx": 3
+                                    }
+                                  },
+                                  {
+                                    "Local": {
+                                      "name": "ys",
+                                      "idx": 1
+                                    }
+                                  }
+                                ],
+                                "fun": {
+                                  "Global": {
+                                    "name": "zip_with.L1"
+                                  }
+                                }
+                              }
+                            }
+                          ],
+                          "fun": {
+                            "Pack": {
+                              "arity": 2,
+                              "tag": 1
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "zip_with.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "mx",
+        "f",
+        "world0"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "world0",
+                    "idx": 1
+                  }
+                }
+              ],
+              "fun": {
+                "Local": {
+                  "name": "mx",
+                  "idx": 3
+                }
+              }
+            }
+          },
+          "altns": [
+            {
+              "binds": [
+                "x",
+                "world1"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "world1",
+                        "idx": 1
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Ap": {
+                      "args": [
+                        {
+                          "Local": {
+                            "name": "x",
+                            "idx": 2
+                          }
+                        }
+                      ],
+                      "fun": {
+                        "Local": {
+                          "name": "f",
+                          "idx": 4
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "monadIO.bind.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "x",
+        "world"
+      ],
+      "body": {
+        "Let": {
+          "body": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "y",
+                    "idx": 1
+                  }
+                },
+                {
+                  "Ap": {
+                    "args": [
+                      {
+                        "Local": {
+                          "name": "y",
+                          "idx": 1
+                        }
+                      },
+                      {
+                        "Local": {
+                          "name": "world",
+                          "idx": 2
+                        }
+                      }
+                    ],
+                    "fun": {
+                      "Pack": {
+                        "arity": 2,
+                        "tag": 0
+                      }
+                    }
+                  }
+                }
+              ],
+              "fun": {
+                "External": {
+                  "name": "seq"
+                }
+              }
+            }
+          },
+          "defn": {
+            "lhs": "y",
+            "rhs": {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "x",
+                      "idx": 2
+                    }
+                  }
+                ],
+                "fun": {
+                  "Local": {
+                    "name": "f",
+                    "idx": 3
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": "io.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "x"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "f",
+                "idx": 2
+              }
+            },
+            {
+              "Local": {
+                "name": "x",
+                "idx": 1
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "io.L1"
+            }
+          }
+        }
+      },
+      "name": "io.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "xs",
+        "ys"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "xs",
+              "idx": 2
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Pack": {
+                  "arity": 0,
+                  "tag": 0
+                }
+              }
+            },
+            {
+              "binds": [
+                "x",
+                "xs'"
+              ],
+              "rhs": {
+                "Match": {
+                  "expr": {
+                    "Local": {
+                      "name": "ys",
+                      "idx": 3
+                    }
+                  },
+                  "altns": [
+                    {
+                      "binds": [],
+                      "rhs": {
+                        "Local": {
+                          "name": "xs",
+                          "idx": 4
+                        }
+                      }
+                    },
+                    {
+                      "binds": [
+                        "y",
+                        "ys'"
+                      ],
+                      "rhs": {
+                        "Match": {
+                          "expr": {
+                            "Ap": {
+                              "args": [
+                                {
+                                  "Local": {
+                                    "name": "x",
+                                    "idx": 4
+                                  }
+                                },
+                                {
+                                  "Local": {
+                                    "name": "y",
+                                    "idx": 2
+                                  }
+                                }
+                              ],
+                              "fun": {
+                                "External": {
+                                  "name": "lt"
+                                }
+                              }
+                            }
+                          },
+                          "altns": [
+                            {
+                              "binds": [],
+                              "rhs": {
+                                "Match": {
+                                  "expr": {
+                                    "Ap": {
+                                      "args": [
+                                        {
+                                          "Local": {
+                                            "name": "x",
+                                            "idx": 4
+                                          }
+                                        },
+                                        {
+                                          "Local": {
+                                            "name": "y",
+                                            "idx": 2
+                                          }
+                                        }
+                                      ],
+                                      "fun": {
+                                        "External": {
+                                          "name": "eq"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "altns": [
+                                    {
+                                      "binds": [],
+                                      "rhs": {
+                                        "Ap": {
+                                          "args": [
+                                            {
+                                              "Local": {
+                                                "name": "xs",
+                                                "idx": 6
+                                              }
+                                            },
+                                            {
+                                              "Local": {
+                                                "name": "ys'",
+                                                "idx": 1
+                                              }
+                                            }
+                                          ],
+                                          "fun": {
+                                            "Global": {
+                                              "name": "diff.L1"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "binds": [],
+                                      "rhs": {
+                                        "Ap": {
+                                          "args": [
+                                            {
+                                              "Local": {
+                                                "name": "xs'",
+                                                "idx": 3
+                                              }
+                                            },
+                                            {
+                                              "Local": {
+                                                "name": "ys'",
+                                                "idx": 1
+                                              }
+                                            }
+                                          ],
+                                          "fun": {
+                                            "Global": {
+                                              "name": "diff.L1"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "binds": [],
+                              "rhs": {
+                                "Ap": {
+                                  "args": [
+                                    {
+                                      "Local": {
+                                        "name": "x",
+                                        "idx": 4
+                                      }
+                                    },
+                                    {
+                                      "Ap": {
+                                        "args": [
+                                          {
+                                            "Local": {
+                                              "name": "xs'",
+                                              "idx": 3
+                                            }
+                                          },
+                                          {
+                                            "Local": {
+                                              "name": "ys",
+                                              "idx": 5
+                                            }
+                                          }
+                                        ],
+                                        "fun": {
+                                          "Global": {
+                                            "name": "diff.L1"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "fun": {
+                                    "Pack": {
+                                      "arity": 2,
+                                      "tag": 1
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "diff.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "m",
+        "n"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "m",
+                    "idx": 2
+                  }
+                },
+                {
+                  "Local": {
+                    "name": "n",
+                    "idx": 1
+                  }
+                }
+              ],
+              "fun": {
+                "External": {
+                  "name": "le"
+                }
+              }
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Pack": {
+                  "arity": 0,
+                  "tag": 0
+                }
+              }
+            },
+            {
+              "binds": [],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "m",
+                        "idx": 2
+                      }
+                    },
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Ap": {
+                              "args": [
+                                {
+                                  "Local": {
+                                    "name": "m",
+                                    "idx": 2
+                                  }
+                                },
+                                {
+                                  "Num": {
+                                    "int": 1
+                                  }
+                                }
+                              ],
+                              "fun": {
+                                "External": {
+                                  "name": "add"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "n",
+                              "idx": 1
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Global": {
+                            "name": "range.L1"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Pack": {
+                      "arity": 2,
+                      "tag": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "range.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "k",
+        "ls",
+        "i"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "ls",
+                "idx": 2
+              }
+            },
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Ap": {
+                      "args": [
+                        {
+                          "Local": {
+                            "name": "k",
+                            "idx": 3
+                          }
+                        },
+                        {
+                          "Local": {
+                            "name": "i",
+                            "idx": 1
+                          }
+                        }
+                      ],
+                      "fun": {
+                        "External": {
+                          "name": "sub"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Ap": {
+                      "args": [
+                        {
+                          "Local": {
+                            "name": "k",
+                            "idx": 3
+                          }
+                        },
+                        {
+                          "Ap": {
+                            "args": [
+                              {
+                                "Ap": {
+                                  "args": [
+                                    {
+                                      "Local": {
+                                        "name": "k",
+                                        "idx": 3
+                                      }
+                                    },
+                                    {
+                                      "Local": {
+                                        "name": "i",
+                                        "idx": 1
+                                      }
+                                    }
+                                  ],
+                                  "fun": {
+                                    "External": {
+                                      "name": "add"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Pack": {
+                                  "arity": 0,
+                                  "tag": 0
+                                }
+                              }
+                            ],
+                            "fun": {
+                              "Pack": {
+                                "arity": 2,
+                                "tag": 1
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "fun": {
+                        "Pack": {
+                          "arity": 2,
+                          "tag": 1
+                        }
+                      }
+                    }
+                  }
+                ],
+                "fun": {
+                  "Pack": {
+                    "arity": 2,
+                    "tag": 1
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "diff.L1"
+            }
+          }
+        }
+      },
+      "name": "solve_aux.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "ints",
+        "kss",
+        "k"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "k",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "Pack": {
+                    "arity": 2,
+                    "tag": 1
+                  }
+                }
+              }
+            },
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "ints",
+                      "idx": 3
+                    }
+                  },
+                  {
+                    "Ap": {
+                      "args": [
+                        {
+                          "Ap": {
+                            "args": [
+                              {
+                                "Local": {
+                                  "name": "k",
+                                  "idx": 1
+                                }
+                              }
+                            ],
+                            "fun": {
+                              "Global": {
+                                "name": "solve_aux.L1"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "Local": {
+                            "name": "kss",
+                            "idx": 2
+                          }
+                        },
+                        {
+                          "Local": {
+                            "name": "ints",
+                            "idx": 3
+                          }
+                        }
+                      ],
+                      "fun": {
+                        "Global": {
+                          "name": "zip_with.L1"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "fun": {
+                  "Global": {
+                    "name": "solve_aux.L3"
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "functorList.map.L1"
+            }
+          }
+        }
+      },
+      "name": "solve_aux.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "ints",
+        "kss"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "kss",
+              "idx": 1
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Pack": {
+                        "arity": 0,
+                        "tag": 0
+                      }
+                    },
+                    {
+                      "Pack": {
+                        "arity": 0,
+                        "tag": 0
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Pack": {
+                      "arity": 2,
+                      "tag": 1
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "binds": [
+                "ks",
+                "kss"
+              ],
+              "rhs": {
+                "Let": {
+                  "body": {
+                    "Let": {
+                      "body": {
+                        "Ap": {
+                          "args": [
+                            {
+                              "Ap": {
+                                "args": [
+                                  {
+                                    "Local": {
+                                      "name": "monoid.m",
+                                      "idx": 2
+                                    }
+                                  },
+                                  {
+                                    "Local": {
+                                      "name": "f",
+                                      "idx": 1
+                                    }
+                                  }
+                                ],
+                                "fun": {
+                                  "Global": {
+                                    "name": "foldMap.L1"
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "Match": {
+                                "expr": {
+                                  "Local": {
+                                    "name": "monoid.m",
+                                    "idx": 2
+                                  }
+                                },
+                                "altns": [
+                                  {
+                                    "binds": [
+                                      "empty",
+                                      null
+                                    ],
+                                    "rhs": {
+                                      "Local": {
+                                        "name": "empty",
+                                        "idx": 2
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "Local": {
+                                "name": "ks",
+                                "idx": 4
+                              }
+                            }
+                          ],
+                          "fun": {
+                            "Global": {
+                              "name": "foldableList.foldr.L1"
+                            }
+                          }
+                        }
+                      },
+                      "defn": {
+                        "lhs": "f",
+                        "rhs": {
+                          "Ap": {
+                            "args": [
+                              {
+                                "Local": {
+                                  "name": "ints",
+                                  "idx": 5
+                                }
+                              },
+                              {
+                                "Local": {
+                                  "name": "kss",
+                                  "idx": 2
+                                }
+                              }
+                            ],
+                            "fun": {
+                              "Global": {
+                                "name": "solve_aux.L2"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "defn": {
+                    "lhs": "monoid.m",
+                    "rhs": {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Global": {
+                              "name": "monoidList.empty"
+                            }
+                          },
+                          {
+                            "Global": {
+                              "name": "monoidList.append.L1"
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Pack": {
+                            "arity": 2,
+                            "tag": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "solve_aux.L3"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "n"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Let": {
+                "body": {
+                  "Ap": {
+                    "args": [
+                      {
+                        "Ap": {
+                          "args": [
+                            {
+                              "Global": {
+                                "name": "monoidInt"
+                              }
+                            },
+                            {
+                              "Local": {
+                                "name": "f",
+                                "idx": 1
+                              }
+                            }
+                          ],
+                          "fun": {
+                            "Global": {
+                              "name": "foldMap.L1"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Global": {
+                          "name": "monoidInt.empty"
+                        }
+                      },
+                      {
+                        "Let": {
+                          "body": {
+                            "Ap": {
+                              "args": [
+                                {
+                                  "Local": {
+                                    "name": "ints",
+                                    "idx": 1
+                                  }
+                                },
+                                {
+                                  "Ap": {
+                                    "args": [
+                                      {
+                                        "Local": {
+                                          "name": "n",
+                                          "idx": 3
+                                        }
+                                      },
+                                      {
+                                        "Local": {
+                                          "name": "ints",
+                                          "idx": 1
+                                        }
+                                      }
+                                    ],
+                                    "fun": {
+                                      "Global": {
+                                        "name": "replicate.L1"
+                                      }
+                                    }
+                                  }
+                                }
+                              ],
+                              "fun": {
+                                "Global": {
+                                  "name": "solve_aux.L3"
+                                }
+                              }
+                            }
+                          },
+                          "defn": {
+                            "lhs": "ints",
+                            "rhs": {
+                              "Ap": {
+                                "args": [
+                                  {
+                                    "Num": {
+                                      "int": 1
+                                    }
+                                  },
+                                  {
+                                    "Local": {
+                                      "name": "n",
+                                      "idx": 2
+                                    }
+                                  }
+                                ],
+                                "fun": {
+                                  "Global": {
+                                    "name": "range.L1"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "fun": {
+                      "Global": {
+                        "name": "foldableList.foldr.L1"
+                      }
+                    }
+                  }
+                },
+                "defn": {
+                  "lhs": "f",
+                  "rhs": {
+                    "Global": {
+                      "name": "length.L1"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "print"
+            }
+          }
+        }
+      },
+      "name": "main.L1"
+    }
+  }
+]

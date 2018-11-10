@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{BufRead, Write};
 use std::rc::Rc;
 
 use crate::ast::{External, Lambda, Name};
@@ -37,7 +37,7 @@ impl<'a> Value<'a> {
     }
   }
 
-  pub fn eval_external(name: External, args: &Vec<Rc<Self>>) -> Rc<Self> {
+  pub fn eval_external<In: BufRead, Out: Write>(name: External, args: &Vec<Rc<Self>>, input: &mut In, output: &mut Out) -> Rc<Self> {
     use self::External::*;
     if args.len() != name.arity() {
       panic!(
@@ -60,24 +60,22 @@ impl<'a> Value<'a> {
       chr => Value::rc_from_i64(args[0].as_i64() & 0xFF),
       ord => Value::rc_from_i64(args[0].as_i64()),
       puti => {
-        println!("{}", args[0].as_i64());
+        writeln!(output, "{}", args[0].as_i64());
         Value::rc_unit()
       }
       putc => {
-        print!("{}", args[0].as_i64() as u8 as char);
+        write!(output, "{}", args[0].as_i64() as u8 as char);
         Value::rc_unit()
       }
       geti => {
-        let mut input = String::new();
-        std::io::stdin()
-          .read_line(&mut input)
-          .expect("Failed to read line");
-        Value::rc_from_i64(input.trim().parse().expect("Input not a number"))
+        let mut line = String::new();
+        input.read_line(&mut line).expect("Failed to read line");
+        Value::rc_from_i64(line.trim().parse().expect("Input not a number"))
       }
       getc => {
-        let mut input = [0];
-        let n = match std::io::stdin().read_exact(&mut input) {
-          Ok(()) => input[0] as i64,
+        let mut buffer = [0];
+        let n = match input.read_exact(&mut buffer) {
+          Ok(()) => buffer[0] as i64,
           Err(_) => -1,
         };
         Value::rc_from_i64(n)

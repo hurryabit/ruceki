@@ -1,0 +1,1073 @@
+[
+  {
+    "Asm": {
+      "name": "lt"
+    }
+  },
+  {
+    "Asm": {
+      "name": "ord"
+    }
+  },
+  {
+    "Asm": {
+      "name": "chr"
+    }
+  },
+  {
+    "Asm": {
+      "name": "seq"
+    }
+  },
+  {
+    "Asm": {
+      "name": "putc"
+    }
+  },
+  {
+    "Asm": {
+      "name": "getc"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Global": {
+                "name": "functorIO.map.L2"
+              }
+            }
+          ],
+          "fun": {
+            "Pack": {
+              "arity": 1,
+              "tag": 0
+            }
+          }
+        }
+      },
+      "name": "functorIO"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Global": {
+                "name": "functorIO"
+              }
+            },
+            {
+              "Global": {
+                "name": "monadIO.pure.L2"
+              }
+            },
+            {
+              "Global": {
+                "name": "monadIO.bind.L2"
+              }
+            }
+          ],
+          "fun": {
+            "Pack": {
+              "arity": 3,
+              "tag": 0
+            }
+          }
+        }
+      },
+      "name": "monadIO"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Global": {
+                "name": "putChar.L1"
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "io.L2"
+            }
+          }
+        }
+      },
+      "name": "putChar"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Global": {
+                "name": "getChar.L1"
+              }
+            },
+            {
+              "Pack": {
+                "arity": 0,
+                "tag": 0
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "io.L1"
+            }
+          }
+        }
+      },
+      "name": "getChar"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "cs"
+      ],
+      "body": {
+        "Let": {
+          "body": {
+            "Ap": {
+              "args": [
+                {
+                  "Global": {
+                    "name": "getChar"
+                  }
+                },
+                {
+                  "Local": {
+                    "name": "f",
+                    "idx": 1
+                  }
+                }
+              ],
+              "fun": {
+                "Global": {
+                  "name": "monadIO.bind.L1"
+                }
+              }
+            }
+          },
+          "defn": {
+            "lhs": "f",
+            "rhs": {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "cs",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "Global": {
+                    "name": "read.L1"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": "read"
+    }
+  },
+  {
+    "Def": {
+      "binds": [],
+      "body": {
+        "Let": {
+          "body": {
+            "Let": {
+              "body": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "mx",
+                        "idx": 2
+                      }
+                    },
+                    {
+                      "Local": {
+                        "name": "f",
+                        "idx": 1
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Global": {
+                      "name": "monadIO.bind.L1"
+                    }
+                  }
+                }
+              },
+              "defn": {
+                "lhs": "f",
+                "rhs": {
+                  "Ap": {
+                    "args": [
+                      {
+                        "Ap": {
+                          "args": [
+                            {
+                              "Global": {
+                                "name": "monadIO"
+                              }
+                            },
+                            {
+                              "Global": {
+                                "name": "putChar"
+                              }
+                            }
+                          ],
+                          "fun": {
+                            "Global": {
+                              "name": "traverse_.L1"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Ap": {
+                          "args": [
+                            {
+                              "Pack": {
+                                "arity": 0,
+                                "tag": 0
+                              }
+                            }
+                          ],
+                          "fun": {
+                            "Pack": {
+                              "arity": 2,
+                              "tag": 0
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "fun": {
+                      "Global": {
+                        "name": "foldableList.foldr.L1"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "defn": {
+            "lhs": "mx",
+            "rhs": {
+              "Ap": {
+                "args": [
+                  {
+                    "Pack": {
+                      "arity": 0,
+                      "tag": 0
+                    }
+                  }
+                ],
+                "fun": {
+                  "Global": {
+                    "name": "read"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": "main"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "y0",
+        "xs"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "xs",
+              "idx": 1
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Local": {
+                  "name": "y0",
+                  "idx": 2
+                }
+              }
+            },
+            {
+              "binds": [
+                "x",
+                "xs"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "x",
+                        "idx": 2
+                      }
+                    },
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Local": {
+                              "name": "f",
+                              "idx": 5
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "y0",
+                              "idx": 4
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "xs",
+                              "idx": 1
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Global": {
+                            "name": "foldableList.foldr.L1"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Local": {
+                      "name": "f",
+                      "idx": 5
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "foldableList.foldr.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "m2",
+        "x"
+      ],
+      "body": {
+        "Local": {
+          "name": "m2",
+          "idx": 2
+        }
+      },
+      "name": "semi.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "monad.m",
+        "m1",
+        "m2"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "m1",
+                "idx": 2
+              }
+            },
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "m2",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "Global": {
+                    "name": "semi.L1"
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "Match": {
+              "expr": {
+                "Local": {
+                  "name": "monad.m",
+                  "idx": 3
+                }
+              },
+              "altns": [
+                {
+                  "binds": [
+                    null,
+                    null,
+                    "bind"
+                  ],
+                  "rhs": {
+                    "Local": {
+                      "name": "bind",
+                      "idx": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "name": "semi.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "monad.m",
+        "f",
+        "x"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "monad.m",
+                "idx": 3
+              }
+            },
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "x",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "Local": {
+                    "name": "f",
+                    "idx": 2
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "semi.L2"
+            }
+          }
+        }
+      },
+      "name": "traverse_.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "mx",
+        "world0"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "world0",
+                    "idx": 1
+                  }
+                }
+              ],
+              "fun": {
+                "Local": {
+                  "name": "mx",
+                  "idx": 2
+                }
+              }
+            }
+          },
+          "altns": [
+            {
+              "binds": [
+                "x",
+                "world1"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Local": {
+                              "name": "x",
+                              "idx": 2
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Local": {
+                            "name": "f",
+                            "idx": 5
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Local": {
+                        "name": "world1",
+                        "idx": 1
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Pack": {
+                      "arity": 2,
+                      "tag": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "functorIO.map.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "mx"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "f",
+                "idx": 2
+              }
+            },
+            {
+              "Local": {
+                "name": "mx",
+                "idx": 1
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "functorIO.map.L1"
+            }
+          }
+        }
+      },
+      "name": "functorIO.map.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "x"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "x",
+                "idx": 1
+              }
+            }
+          ],
+          "fun": {
+            "Pack": {
+              "arity": 2,
+              "tag": 0
+            }
+          }
+        }
+      },
+      "name": "monadIO.pure.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "mx",
+        "f",
+        "world0"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "world0",
+                    "idx": 1
+                  }
+                }
+              ],
+              "fun": {
+                "Local": {
+                  "name": "mx",
+                  "idx": 3
+                }
+              }
+            }
+          },
+          "altns": [
+            {
+              "binds": [
+                "x",
+                "world1"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "world1",
+                        "idx": 1
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Ap": {
+                      "args": [
+                        {
+                          "Local": {
+                            "name": "x",
+                            "idx": 2
+                          }
+                        }
+                      ],
+                      "fun": {
+                        "Local": {
+                          "name": "f",
+                          "idx": 4
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "monadIO.bind.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "mx",
+        "f"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "mx",
+                "idx": 2
+              }
+            },
+            {
+              "Local": {
+                "name": "f",
+                "idx": 1
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "monadIO.bind.L1"
+            }
+          }
+        }
+      },
+      "name": "monadIO.bind.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "x",
+        "world"
+      ],
+      "body": {
+        "Let": {
+          "body": {
+            "Ap": {
+              "args": [
+                {
+                  "Local": {
+                    "name": "y",
+                    "idx": 1
+                  }
+                },
+                {
+                  "Ap": {
+                    "args": [
+                      {
+                        "Local": {
+                          "name": "y",
+                          "idx": 1
+                        }
+                      },
+                      {
+                        "Local": {
+                          "name": "world",
+                          "idx": 2
+                        }
+                      }
+                    ],
+                    "fun": {
+                      "Pack": {
+                        "arity": 2,
+                        "tag": 0
+                      }
+                    }
+                  }
+                }
+              ],
+              "fun": {
+                "External": {
+                  "name": "seq"
+                }
+              }
+            }
+          },
+          "defn": {
+            "lhs": "y",
+            "rhs": {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "x",
+                      "idx": 2
+                    }
+                  }
+                ],
+                "fun": {
+                  "Local": {
+                    "name": "f",
+                    "idx": 3
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": "io.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "f",
+        "x"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Local": {
+                "name": "f",
+                "idx": 2
+              }
+            },
+            {
+              "Local": {
+                "name": "x",
+                "idx": 1
+              }
+            }
+          ],
+          "fun": {
+            "Global": {
+              "name": "io.L1"
+            }
+          }
+        }
+      },
+      "name": "io.L2"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "c"
+      ],
+      "body": {
+        "Ap": {
+          "args": [
+            {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "c",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "External": {
+                    "name": "ord"
+                  }
+                }
+              }
+            }
+          ],
+          "fun": {
+            "External": {
+              "name": "putc"
+            }
+          }
+        }
+      },
+      "name": "putChar.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "u"
+      ],
+      "body": {
+        "Let": {
+          "body": {
+            "Match": {
+              "expr": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "n",
+                        "idx": 1
+                      }
+                    },
+                    {
+                      "Num": {
+                        "int": 0
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "External": {
+                      "name": "lt"
+                    }
+                  }
+                }
+              },
+              "altns": [
+                {
+                  "binds": [],
+                  "rhs": {
+                    "Ap": {
+                      "args": [
+                        {
+                          "Ap": {
+                            "args": [
+                              {
+                                "Local": {
+                                  "name": "n",
+                                  "idx": 1
+                                }
+                              }
+                            ],
+                            "fun": {
+                              "External": {
+                                "name": "chr"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "fun": {
+                        "Pack": {
+                          "arity": 1,
+                          "tag": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "binds": [],
+                  "rhs": {
+                    "Pack": {
+                      "arity": 0,
+                      "tag": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "defn": {
+            "lhs": "n",
+            "rhs": {
+              "Ap": {
+                "args": [
+                  {
+                    "Local": {
+                      "name": "u",
+                      "idx": 1
+                    }
+                  }
+                ],
+                "fun": {
+                  "External": {
+                    "name": "getc"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": "getChar.L1"
+    }
+  },
+  {
+    "Def": {
+      "binds": [
+        "cs",
+        "c_opt"
+      ],
+      "body": {
+        "Match": {
+          "expr": {
+            "Local": {
+              "name": "c_opt",
+              "idx": 1
+            }
+          },
+          "altns": [
+            {
+              "binds": [],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Local": {
+                        "name": "cs",
+                        "idx": 2
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Pack": {
+                      "arity": 2,
+                      "tag": 0
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "binds": [
+                "c"
+              ],
+              "rhs": {
+                "Ap": {
+                  "args": [
+                    {
+                      "Ap": {
+                        "args": [
+                          {
+                            "Local": {
+                              "name": "c",
+                              "idx": 1
+                            }
+                          },
+                          {
+                            "Local": {
+                              "name": "cs",
+                              "idx": 3
+                            }
+                          }
+                        ],
+                        "fun": {
+                          "Pack": {
+                            "arity": 2,
+                            "tag": 1
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "fun": {
+                    "Global": {
+                      "name": "read"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "name": "read.L1"
+    }
+  }
+]
