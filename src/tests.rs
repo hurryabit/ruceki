@@ -20,16 +20,22 @@ fn test_numeric(name: &str, input: &[i64], expected_output: &[i64]) {
 }
 
 fn test_sort(name: &str) {
-  let mut expected_output = Vec::with_capacity(100);
-  let mut n = 1;
-  for _ in 0 .. expected_output.capacity() {
-    expected_output.push(n);
-    n = (91 * n) % 1000000007;
-  }
-  let mut input = vec![expected_output.capacity() as i64];
-  input.extend(expected_output.iter());
-  expected_output.sort();
-  test_numeric(name, &input, &expected_output);
+  use proptest::test_runner::{Config, TestRunner};
+  let config = Config {
+    cases: 20,
+    .. Config::default()
+  };
+  let mut runner = TestRunner::new(config);
+  let strategy = proptest::collection::vec(-100..100_i64, 0..100);
+  let result = runner.run(&strategy, |v| {
+    let mut input = vec![v.len() as i64];
+    input.extend(v.iter());
+    let mut expected_output = v.clone();
+    expected_output.sort();
+    test_numeric(name, &input, &expected_output);
+    Ok(())
+  });
+  result.expect("test_sort failed");
 }
 
 #[test]
@@ -53,8 +59,8 @@ fn wildcard() {
 }
 
 #[test]
-fn isort() {
-  test_sort("isort");
+fn queens() {
+  test_numeric("queens", &[8], &[92]);
 }
 
 #[test]
@@ -63,6 +69,6 @@ fn qsort() {
 }
 
 #[test]
-fn queens() {
-  test_numeric("queens", &[8], &[92]);
+fn isort() {
+  test_sort("isort");
 }
